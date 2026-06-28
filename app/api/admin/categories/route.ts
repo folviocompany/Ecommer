@@ -4,25 +4,35 @@ import { requireAdmin } from '@/lib/admin-auth';
 import { generateSlug } from '@/lib/slug';
 
 export async function GET() {
-  const auth = await requireAdmin();
-  if (auth) return auth;
+  try {
+    const auth = await requireAdmin();
+    if (auth) return auth;
 
-  const categories = await sql`
-    SELECT * FROM categories ORDER BY name
-  `;
-  return NextResponse.json(categories);
+    const categories = await sql`
+      SELECT * FROM categories ORDER BY name
+    `;
+    return NextResponse.json(categories);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
-  if (auth) return auth;
+  try {
+    const auth = await requireAdmin();
+    if (auth) return auth;
 
-  const { name } = await request.json();
-  if (!name) return NextResponse.json({ error: 'name é obrigatório' }, { status: 400 });
+    const { name } = await request.json();
+    if (!name) return NextResponse.json({ error: 'name é obrigatório' }, { status: 400 });
 
-  const slug = generateSlug(name);
-  const [cat] = await sql`
-    INSERT INTO categories (name, slug) VALUES (${name}, ${slug}) RETURNING *
-  `;
-  return NextResponse.json(cat, { status: 201 });
+    const slug = generateSlug(name);
+    const [cat] = await sql`
+      INSERT INTO categories (name, slug) VALUES (${name}, ${slug}) RETURNING *
+    `;
+    return NextResponse.json(cat, { status: 201 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
