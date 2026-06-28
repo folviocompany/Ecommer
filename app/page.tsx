@@ -5,16 +5,39 @@ import Footer from '@/components/layout/Footer';
 import ProductGrid from '@/components/store/ProductGrid';
 import type { ProductPublic } from '@/types';
 import { STORE_NAME, STORE_DESCRIPTION } from '@/lib/store';
+import sql from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 async function getFeatured(): Promise<ProductPublic[]> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   try {
-    const res = await fetch(`${base}/api/products?featured=true&limit=8`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.products ?? [];
+    const rows = (await sql.unsafe(`
+      SELECT
+        p.id, p.name, p.slug, p.price, p.images, p.featured,
+        c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
+        EXISTS (
+          SELECT 1 FROM variations v
+          WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
+        ) AS has_stock
+      FROM products p
+      LEFT JOIN categories c ON c.id = p.category_id
+      WHERE p.active = true AND p.featured = true
+      ORDER BY p.created_at DESC
+      LIMIT 8
+    `)) as unknown as Record<string, unknown>[];
+
+    return rows.map((p) => ({
+      id: p.id as number,
+      name: p.name as string,
+      slug: p.slug as string,
+      price: Number(p.price),
+      images: p.images as string[],
+      featured: p.featured as boolean,
+      hasStock: p.has_stock as boolean,
+      category: p.cat_id
+        ? { id: p.cat_id as number, name: p.cat_name as string, slug: p.cat_slug as string }
+        : null,
+    }));
   } catch {
     return [];
   }
@@ -30,8 +53,7 @@ export default async function HomePage() {
 
         {/* ── Hero ── */}
         <section className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0A0A0A]">
-          {/* Background image at 20% opacity */}
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 pointer-events-none">
             <Image
               src="https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=1600&q=80"
               alt=""
@@ -40,11 +62,8 @@ export default async function HomePage() {
               priority
             />
           </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0A0A0A] pointer-events-none" />
 
-          {/* Gradient overlay bottom */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0A0A0A]" />
-
-          {/* Content */}
           <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
             <p className="text-[#F97316] text-xs md:text-sm font-bold tracking-[0.5em] uppercase mb-6">
               Nova Coleção 2025
@@ -63,8 +82,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#A3A3A3]">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#A3A3A3] pointer-events-none">
             <span className="text-xs tracking-widest uppercase">Scroll</span>
             <div className="w-px h-8 bg-gradient-to-b from-[#A3A3A3] to-transparent" />
           </div>
@@ -83,9 +101,7 @@ export default async function HomePage() {
                   </h2>
                 </div>
               </div>
-
               <ProductGrid products={featured} />
-
               <div className="mt-12 text-center">
                 <Link
                   href="/produtos"
