@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-const storeName = process.env.NEXT_PUBLIC_STORE_NAME ?? 'Loja';
+import { STORE_NAME } from '@/lib/store';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,7 +34,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <p className="text-2xl font-bold" style={{ color: 'var(--store-color)' }}>{storeName}</p>
+          <p className="text-2xl font-bold" style={{ color: 'var(--store-color)' }}>{STORE_NAME}</p>
           <p className="text-gray-500 text-sm mt-1">Painel Administrativo</p>
         </div>
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow space-y-4">

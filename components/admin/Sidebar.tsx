@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Package, Tag, ShoppingBag, LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { STORE_NAME } from '@/lib/store';
 
 const links = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -14,8 +15,6 @@ const links = [
   { href: '/admin/categorias', label: 'Categorias', icon: Tag },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
 ];
-
-const storeName = process.env.NEXT_PUBLIC_STORE_NAME ?? 'Loja';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -27,7 +26,7 @@ export default function Sidebar() {
   return (
     <aside className="w-60 min-h-screen bg-gray-900 text-white flex flex-col">
       <div className="p-4 border-b border-gray-700">
-        <p className="font-bold text-lg" style={{ color: 'var(--store-color)' }}>{storeName}</p>
+        <p className="font-bold text-lg" style={{ color: 'var(--store-color)' }}>{STORE_NAME}</p>
         <p className="text-xs text-gray-400">Painel Admin</p>
       </div>
 

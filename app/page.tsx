@@ -4,9 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ProductGrid from '@/components/store/ProductGrid';
 import type { ProductPublic } from '@/types';
-
-const storeName = process.env.NEXT_PUBLIC_STORE_NAME ?? 'Nossa Loja';
-const storeDesc = process.env.NEXT_PUBLIC_STORE_DESCRIPTION ?? 'Confira nossos produtos exclusivos';
+import { STORE_NAME, STORE_DESCRIPTION } from '@/lib/store';
 
 async function getFeatured(): Promise<ProductPublic[]> {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -33,8 +31,8 @@ export default async function HomePage() {
           className="py-20 px-4 text-white text-center"
           style={{ backgroundColor: 'var(--store-color)' }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{storeName}</h1>
-          <p className="text-lg md:text-xl opacity-90 mb-8 max-w-xl mx-auto">{storeDesc}</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{STORE_NAME}</h1>
+          <p className="text-lg md:text-xl opacity-90 mb-8 max-w-xl mx-auto">{STORE_DESCRIPTION}</p>
           <Link href="/produtos">
             <Button size="lg" className="bg-white font-semibold hover:bg-gray-100"
               style={{ color: 'var(--store-color)' }}>

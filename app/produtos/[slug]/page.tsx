@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCart } from '@/contexts/CartContext';
 import type { ProductDetail, VariationPublic } from '@/types';
+import { STORE_WHATSAPP } from '@/lib/store';
 
 function formatPrice(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -60,9 +61,8 @@ export default function ProdutoPage() {
 
   const maxQty = Math.min(selectedVariation?.stock ?? 1, 10);
   const price = selectedVariation?.finalPrice ?? product.price;
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP;
-  const waUrl = whatsapp
-    ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${product.name}`)}`
+  const waUrl = STORE_WHATSAPP
+    ? `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${product.name}`)}`
     : null;
 
   function handleAddToCart() {

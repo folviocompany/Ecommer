@@ -7,9 +7,7 @@ import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import CartDrawer from '@/components/store/CartDrawer';
-
-const storeName = process.env.NEXT_PUBLIC_STORE_NAME ?? 'Loja';
-const logoUrl = process.env.NEXT_PUBLIC_STORE_LOGO_URL ?? '';
+import { STORE_NAME, STORE_LOGO_URL } from '@/lib/store';
 
 export default function Header() {
   const { itemCount } = useCart();
@@ -21,10 +19,10 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-            {logoUrl ? (
-              <Image src={logoUrl} alt={storeName} width={40} height={40} className="object-contain" />
+            {STORE_LOGO_URL ? (
+              <Image src={STORE_LOGO_URL} alt={STORE_NAME} width={40} height={40} className="object-contain" />
             ) : null}
-            <span style={{ color: 'var(--store-color)' }}>{storeName}</span>
+            <span style={{ color: 'var(--store-color)' }}>{STORE_NAME}</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">

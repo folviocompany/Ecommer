@@ -49,6 +49,14 @@
 }
 
 :root {
+  /* DropStore brand colors — update here when cloning for a new client */
+  --store-color: #F97316;
+  --store-color-dark: #EA6C00;
+
+  /* shadcn primary mapped to brand color */
+  --primary: #F97316;
+  --primary-foreground: #ffffff;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

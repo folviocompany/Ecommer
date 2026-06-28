@@ -1,19 +1,17 @@
 import Link from 'next/link';
 import { MessageCircle } from 'lucide-react';
-
-const storeName = process.env.NEXT_PUBLIC_STORE_NAME ?? 'Loja';
-const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP ?? '';
+import { STORE_NAME, STORE_WHATSAPP } from '@/lib/store';
 
 export default function Footer() {
-  const waLink = whatsapp
-    ? `https://wa.me/${whatsapp}?text=${encodeURIComponent('Olá, tenho uma dúvida sobre um pedido.')}`
+  const waLink = STORE_WHATSAPP
+    ? `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent('Olá, tenho uma dúvida sobre um pedido.')}`
     : null;
 
   return (
     <footer className="mt-auto border-t bg-gray-50 text-sm text-gray-600">
       <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <p>
-          &copy; {new Date().getFullYear()} {storeName}. Todos os direitos reservados.
+          &copy; {new Date().getFullYear()} {STORE_NAME}. Todos os direitos reservados.
         </p>
         {waLink && (
           <Link
