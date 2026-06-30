@@ -102,28 +102,3 @@
   }
 }
 
-/* ── Scroll reveal animations ── */
-@keyframes reveal-up {
-  from { opacity: 0; transform: translateY(32px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Section heading: starts hidden, transitions when .is-revealed is added */
-.reveal-container .reveal-heading {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.65s ease, transform 0.65s ease;
-}
-.reveal-container.is-revealed .reveal-heading {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Product cards: staggered fade-up via CSS custom property --reveal-delay */
-.reveal-container .product-reveal {
-  opacity: 0;
-}
-.reveal-container.is-revealed .product-reveal {
-  animation: reveal-up 0.55s ease both;
-  animation-delay: var(--reveal-delay, 0ms);
-}
