@@ -20,32 +20,56 @@ async function getCategories(): Promise<Pick<Category, 'id' | 'name' | 'slug'>[]
 
 async function getProducts(params: { category?: string; page?: string }) {
   try {
-    const page = Math.max(1, parseInt(params.page ?? '1'));
+    const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1);
     const limit = 20;
     const offset = (page - 1) * limit;
+    const category = params.category ?? null;
 
-    const conditions: string[] = ['p.active = true'];
-    if (params.category) conditions.push(`c.slug = '${params.category.replace(/'/g, "''")}'`);
-    const where = conditions.join(' AND ');
+    let countResult: { count: number }[];
+    let rows: Record<string, unknown>[];
 
-    const [{ count }] = (await sql.unsafe(
-      `SELECT COUNT(*)::int AS count FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE ${where}`
-    )) as unknown as { count: number }[];
+    const selectFields = sql`
+      p.id, p.name, p.slug, p.price, p.images, p.featured,
+      c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
+      EXISTS (
+        SELECT 1 FROM variations v
+        WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
+      ) AS has_stock
+    `;
 
-    const rows = (await sql.unsafe(`
-      SELECT
-        p.id, p.name, p.slug, p.price, p.images, p.featured,
-        c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
-        EXISTS (
-          SELECT 1 FROM variations v
-          WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
-        ) AS has_stock
-      FROM products p
-      LEFT JOIN categories c ON c.id = p.category_id
-      WHERE ${where}
-      ORDER BY p.featured DESC, p.created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `)) as unknown as Record<string, unknown>[];
+    if (category) {
+      countResult = await sql`
+        SELECT COUNT(*)::int AS count
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = true AND c.slug = ${category}
+      ` as unknown as { count: number }[];
+      rows = await sql`
+        SELECT ${selectFields}
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = true AND c.slug = ${category}
+        ORDER BY p.featured DESC, p.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      ` as unknown as Record<string, unknown>[];
+    } else {
+      countResult = await sql`
+        SELECT COUNT(*)::int AS count
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = true
+      ` as unknown as { count: number }[];
+      rows = await sql`
+        SELECT ${selectFields}
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = true
+        ORDER BY p.featured DESC, p.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      ` as unknown as Record<string, unknown>[];
+    }
+
+    const [{ count }] = countResult;
 
     return {
       products: rows.map((p) => ({

@@ -6,15 +6,23 @@ function getClient() {
   });
 }
 
-// Lazy: instâncias criadas só no primeiro uso (não durante o build)
-export const preference = new Proxy({} as Preference, {
-  get(_: Preference, prop: string | symbol): unknown {
-    return Reflect.get(new Preference(getClient()), prop);
-  },
-});
+// Lazy singletons: instâncias criadas apenas no primeiro uso (não durante o build)
+let _preference: Preference | undefined;
+let _payment: Payment | undefined;
 
-export const payment = new Proxy({} as Payment, {
-  get(_: Payment, prop: string | symbol): unknown {
-    return Reflect.get(new Payment(getClient()), prop);
-  },
-});
+export function getPreference(): Preference {
+  return _preference ??= new Preference(getClient());
+}
+
+export function getPayment(): Payment {
+  return _payment ??= new Payment(getClient());
+}
+
+// Re-exporta como objetos para compatibilidade com os imports existentes
+export const preference = {
+  create: (...args: Parameters<Preference['create']>) => getPreference().create(...args),
+} as Pick<Preference, 'create'>;
+
+export const payment = {
+  get: (...args: Parameters<Payment['get']>) => getPayment().get(...args),
+} as Pick<Payment, 'get'>;

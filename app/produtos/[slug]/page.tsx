@@ -32,10 +32,13 @@ export default function ProdutoPage() {
   useEffect(() => {
     fetch(`/api/products/${slug}`)
       .then((r) => {
-        if (!r.ok) router.replace('/produtos');
+        if (!r.ok) {
+          router.replace('/produtos');
+          return null;
+        }
         return r.json();
       })
-      .then(setProduct)
+      .then((data) => { if (data) setProduct(data); })
       .catch(() => router.replace('/produtos'))
       .finally(() => setLoading(false));
   }, [slug, router]);

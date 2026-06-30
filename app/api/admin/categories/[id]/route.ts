@@ -12,16 +12,17 @@ export async function PATCH(
     if (auth) return auth;
 
     const { id } = await params;
+    const catId = Number(id);
+    if (isNaN(catId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+
     const { name, active } = await request.json();
 
-    const updates: string[] = [];
     if (name !== undefined) {
-      updates.push(`name = '${name.replace(/'/g, "''")}'`, `slug = '${generateSlug(name)}'`);
+      const slug = generateSlug(name);
+      await sql`UPDATE categories SET name = ${name}, slug = ${slug}, updated_at = NOW() WHERE id = ${catId}`;
     }
-    if (active !== undefined) updates.push(`active = ${active}`);
-
-    if (updates.length) {
-      await sql.unsafe(`UPDATE categories SET ${updates.join(', ')} WHERE id = ${Number(id)}`);
+    if (active !== undefined) {
+      await sql`UPDATE categories SET active = ${Boolean(active)}, updated_at = NOW() WHERE id = ${catId}`;
     }
 
     return NextResponse.json({ ok: true });

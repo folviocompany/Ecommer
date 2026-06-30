@@ -18,9 +18,10 @@ export default function VariationPicker({ variations, onSelect }: Props) {
       .map((v) => [v.color, { color: v.color!, colorHex: v.colorHex }])
   ).values()];
 
+  // Só mostra tamanhos após cor ser selecionada (quando o produto tem cores)
   const sizesForColor = selectedColor
     ? variations.filter((v) => v.color === selectedColor)
-    : variations;
+    : colors.length === 0 ? variations : [];
 
   const uniqueSizes = [...new Set(sizesForColor.map((v) => v.size).filter(Boolean))] as string[];
 

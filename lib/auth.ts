@@ -12,12 +12,12 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials) return null;
-        if (
+        const hash = process.env.ADMIN_PASSWORD_HASH;
+        if (!hash) return null;
+        const valid =
           credentials.email === process.env.ADMIN_EMAIL &&
-          bcrypt.compareSync(credentials.password, process.env.ADMIN_PASSWORD_HASH!)
-        ) {
-          return { id: '1', email: credentials.email, name: 'Admin' };
-        }
+          (await bcrypt.compare(credentials.password, hash));
+        if (valid) return { id: '1', email: credentials.email, name: 'Admin' };
         return null;
       },
     }),

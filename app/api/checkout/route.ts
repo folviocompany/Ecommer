@@ -5,6 +5,12 @@ import type { CheckoutItem, CheckoutCustomer, ShippingAddress } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      console.error('NEXT_PUBLIC_APP_URL não configurado');
+      return NextResponse.json({ error: 'Configuração inválida do servidor' }, { status: 500 });
+    }
+
     const body = await request.json();
     const {
       items,
@@ -20,6 +26,13 @@ export async function POST(request: NextRequest) {
 
     if (!items?.length || !customer || !shippingAddress) {
       return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+    }
+
+    // Validar que todas as quantidades são inteiros positivos
+    for (const item of items) {
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        return NextResponse.json({ error: 'Quantidade inválida', variationId: item.variationId }, { status: 400 });
+      }
     }
 
     // 1. Buscar produtos e variações no banco (nunca confiar no preço do body)
@@ -102,7 +115,7 @@ export async function POST(request: NextRequest) {
         unit_price, quantity, subtotal
       )
       SELECT
-        unnest(${orderLines.map((l) => orderId)}::int[]),
+        unnest(${orderLines.map(() => orderId)}::int[]),
         unnest(${orderLines.map((l) => l.productId)}::int[]),
         unnest(${orderLines.map((l) => l.variationId)}::int[]),
         unnest(${orderLines.map((l) => l.productName)}::text[]),
@@ -113,7 +126,6 @@ export async function POST(request: NextRequest) {
     `;
 
     // 5. Criar preferência no Mercado Pago
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     const mpItems = orderLines.map((line) => ({
       id: String(line.variationId),
       title: line.variationDesc
@@ -144,6 +156,11 @@ export async function POST(request: NextRequest) {
         notification_url: `${appUrl}/api/webhook`,
       },
     });
+
+    if (!pref.init_point) {
+      console.error('MP não retornou init_point para o pedido', orderId);
+      return NextResponse.json({ error: 'Erro ao criar preferência de pagamento' }, { status: 500 });
+    }
 
     // 6. Atualizar pedido com preference_id
     await sql`

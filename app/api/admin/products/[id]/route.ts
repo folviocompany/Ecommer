@@ -42,22 +42,38 @@ export async function PATCH(
     if (auth) return auth;
 
     const { id } = await params;
+    const productId = Number(id);
+    if (isNaN(productId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+
     const body = await request.json();
     const { name, categoryId, description, price, images, featured, active, variations } = body;
 
-    const updates: string[] = ['updated_at = NOW()'];
+    // Atualizar campos individualmente com queries parametrizadas
     if (name !== undefined) {
       const slug = generateSlug(name);
-      updates.push(`name = '${name.replace(/'/g, "''")}'`, `slug = '${slug}'`);
+      await sql`UPDATE products SET name = ${name}, slug = ${slug}, updated_at = NOW() WHERE id = ${productId}`;
     }
-    if (categoryId !== undefined) updates.push(`category_id = ${categoryId ?? 'NULL'}`);
-    if (description !== undefined) updates.push(`description = '${(description ?? '').replace(/'/g, "''")}'`);
-    if (price !== undefined) updates.push(`price = ${price}`);
-    if (images !== undefined) updates.push(`images = ARRAY[${(images as string[]).map((u) => `'${u}'`).join(',')}]`);
-    if (featured !== undefined) updates.push(`featured = ${featured}`);
-    if (active !== undefined) updates.push(`active = ${active}`);
-
-    await sql.unsafe(`UPDATE products SET ${updates.join(', ')} WHERE id = ${Number(id)}`);
+    if (categoryId !== undefined) {
+      await sql`UPDATE products SET category_id = ${categoryId ?? null}, updated_at = NOW() WHERE id = ${productId}`;
+    }
+    if (description !== undefined) {
+      await sql`UPDATE products SET description = ${description ?? null}, updated_at = NOW() WHERE id = ${productId}`;
+    }
+    if (price !== undefined) {
+      const numPrice = Number(price);
+      if (isNaN(numPrice) || numPrice < 0) return NextResponse.json({ error: 'Preço inválido' }, { status: 400 });
+      await sql`UPDATE products SET price = ${numPrice}, updated_at = NOW() WHERE id = ${productId}`;
+    }
+    if (images !== undefined) {
+      const imgs = images as string[];
+      await sql`UPDATE products SET images = ${imgs}, updated_at = NOW() WHERE id = ${productId}`;
+    }
+    if (featured !== undefined) {
+      await sql`UPDATE products SET featured = ${Boolean(featured)}, updated_at = NOW() WHERE id = ${productId}`;
+    }
+    if (active !== undefined) {
+      await sql`UPDATE products SET active = ${Boolean(active)}, updated_at = NOW() WHERE id = ${productId}`;
+    }
 
     if (variations) {
       if (variations.add?.length) {
@@ -65,20 +81,24 @@ export async function PATCH(
           await sql`
             INSERT INTO variations (product_id, size, color, color_hex, sku, stock, price_modifier)
             VALUES (
-              ${Number(id)}, ${v.size ?? null}, ${v.color ?? null}, ${v.colorHex ?? null},
-              ${v.sku ?? null}, ${v.stock ?? 0}, ${v.priceModifier ?? 0}
+              ${productId}, ${v.size ?? null}, ${v.color ?? null}, ${v.colorHex ?? null},
+              ${v.sku ?? null}, ${Number(v.stock) || 0}, ${Number(v.priceModifier) || 0}
             )
           `;
         }
       }
       if (variations.update?.length) {
         for (const v of variations.update) {
-          const fields: string[] = [];
-          if (v.stock !== undefined) fields.push(`stock = ${v.stock}`);
-          if (v.price_modifier !== undefined) fields.push(`price_modifier = ${v.price_modifier}`);
-          if (v.active !== undefined) fields.push(`active = ${v.active}`);
-          if (fields.length) {
-            await sql.unsafe(`UPDATE variations SET ${fields.join(', ')} WHERE id = ${v.id}`);
+          const varId = Number(v.id);
+          if (isNaN(varId)) continue;
+          if (v.stock !== undefined) {
+            await sql`UPDATE variations SET stock = ${Number(v.stock)} WHERE id = ${varId}`;
+          }
+          if (v.price_modifier !== undefined) {
+            await sql`UPDATE variations SET price_modifier = ${Number(v.price_modifier)} WHERE id = ${varId}`;
+          }
+          if (v.active !== undefined) {
+            await sql`UPDATE variations SET active = ${Boolean(v.active)} WHERE id = ${varId}`;
           }
         }
       }

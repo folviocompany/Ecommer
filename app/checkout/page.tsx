@@ -67,6 +67,10 @@ export default function CheckoutPage() {
       }
 
       const { checkoutUrl } = await res.json();
+      if (!checkoutUrl) {
+        toast.error('Erro ao obter URL de pagamento. Tente novamente.');
+        return;
+      }
       clearCart();
       window.location.href = checkoutUrl;
     } catch {
