@@ -59,7 +59,7 @@ INSERT INTO products (category_id, name, slug, description, price, images, featu
    'Moletom com capuz e bolso canguru. Forro interno felpudo, cordão de algodão e punhos em ribana. O favorito das madrugadas frias.',
    189.90,
    ARRAY[
-     'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+     'https://images.unsplash.com/photo-1680292783974-a9a336c10366?w=600&q=80',
      'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=600&q=80'
    ],
    true, true),
@@ -69,7 +69,7 @@ INSERT INTO products (category_id, name, slug, description, price, images, featu
    'Corte extra largo com ombros caídos. Sem capuz, gola canoa. Streetwear minimalista no seu melhor. Algodão fleece 320g.',
    219.90,
    ARRAY[
-     'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80'
+     'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=600&q=80'
    ],
    false, true),
 
@@ -179,8 +179,8 @@ UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1521572163
 UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&q=80','https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&q=80'] WHERE slug = 'camiseta-acid-wash';
 UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600&q=80','https://images.unsplash.com/photo-1622445275576-721325763afe?w=600&q=80'] WHERE slug = 'camiseta-drop-logo';
 UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&q=80'] WHERE slug = 'camiseta-patchwork';
-UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80','https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=600&q=80'] WHERE slug = 'moletom-street-classic';
-UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80'] WHERE slug = 'moletom-oversized-drop';
+UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1680292783974-a9a336c10366?w=600&q=80','https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=600&q=80'] WHERE slug = 'moletom-street-classic';
+UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=600&q=80'] WHERE slug = 'moletom-oversized-drop';
 UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&q=80','https://images.unsplash.com/photo-1521369909029-2afed882baee?w=600&q=80'] WHERE slug = 'bone-dad-hat-classico';
 UPDATE products SET images = ARRAY['https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=600&q=80'] WHERE slug = 'meia-drop-crew';
 

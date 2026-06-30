@@ -31,9 +31,19 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         <div className="flex-1 overflow-y-auto px-4 py-2">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500">
-              <ShoppingCart className="h-12 w-12 opacity-20" />
-              <p>Seu carrinho está vazio.</p>
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4">
+              <ShoppingCart className="h-14 w-14 text-[#2A2A2A]" />
+              <div>
+                <p className="font-medium text-white">Seu carrinho está vazio</p>
+                <p className="text-sm text-[#A3A3A3] mt-1">Adicione produtos para continuar</p>
+              </div>
+              <Link
+                href="/produtos"
+                onClick={onClose}
+                className="mt-2 inline-block bg-[#F97316] text-white text-xs font-bold tracking-[0.3em] uppercase px-6 py-3 hover:bg-[#EA6C00] transition-colors"
+              >
+                Ver produtos
+              </Link>
             </div>
           ) : (
             items.map((item) => <CartItem key={item.variationId} item={item} />)

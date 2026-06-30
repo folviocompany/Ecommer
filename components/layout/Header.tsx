@@ -39,10 +39,10 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCartOpen(true)}
-              className="relative p-2 text-white hover:text-[#F97316] transition-colors"
+              className="relative p-2 text-white hover:text-[#F97316] transition-colors group"
               aria-label="Carrinho"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-5 w-5 transition-transform group-hover:scale-110 group-hover:-rotate-6" />
               {itemCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-[#F97316] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
                   {itemCount > 9 ? '9+' : itemCount}

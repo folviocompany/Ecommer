@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ProductGrid from '@/components/store/ProductGrid';
@@ -76,15 +77,15 @@ export default async function HomePage() {
             </p>
             <Link
               href="/produtos"
-              className="inline-block border-2 border-[#F97316] text-[#F97316] px-12 py-4 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#F97316] hover:text-white transition-all duration-300"
+              className="inline-block bg-[#F97316] text-white px-12 py-4 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#EA6C00] hover:shadow-[0_0_40px_rgba(249,115,22,0.45)] transition-all duration-300"
             >
               VER COLEÇÃO
             </Link>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#A3A3A3] pointer-events-none">
-            <span className="text-xs tracking-widest uppercase">Scroll</span>
-            <div className="w-px h-8 bg-gradient-to-b from-[#A3A3A3] to-transparent" />
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-[#A3A3A3] pointer-events-none animate-bounce">
+            <span className="text-[10px] tracking-[0.4em] uppercase font-medium">Scroll</span>
+            <ChevronDown className="h-4 w-4" />
           </div>
         </section>
 

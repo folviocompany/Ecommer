@@ -18,7 +18,6 @@ export default function VariationPicker({ variations, onSelect }: Props) {
       .map((v) => [v.color, { color: v.color!, colorHex: v.colorHex }])
   ).values()];
 
-  // Só mostra tamanhos após cor ser selecionada (quando o produto tem cores)
   const sizesForColor = selectedColor
     ? variations.filter((v) => v.color === selectedColor)
     : colors.length === 0 ? variations : [];
@@ -40,26 +39,26 @@ export default function VariationPicker({ variations, onSelect }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {colors.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">
-            Cor{selectedColor ? `: ${selectedColor}` : ''}
+          <p className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-[0.3em] mb-3">
+            Cor{selectedColor ? <span className="text-white normal-case tracking-normal font-medium ml-2">{selectedColor}</span> : ''}
           </p>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             {colors.map(({ color, colorHex }) => {
-              const hasStock = variations.some(
-                (v) => v.color === color && v.stock > 0
-              );
+              const hasStock = variations.some((v) => v.color === color && v.stock > 0);
               return (
                 <button
                   key={color}
                   title={color}
                   onClick={() => pickColor(color!)}
                   disabled={!hasStock}
-                  className={`w-8 h-8 rounded-full border-2 transition-all
-                    ${selectedColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}
-                    ${!hasStock ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`}
+                  className={`w-9 h-9 rounded-full transition-all relative
+                    ${selectedColor === color
+                      ? 'ring-2 ring-[#F97316] ring-offset-2 ring-offset-[#0A0A0A] scale-110'
+                      : 'ring-1 ring-[#333] ring-offset-1 ring-offset-[#0A0A0A]'}
+                    ${!hasStock ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 cursor-pointer hover:ring-[#F97316]'}`}
                   style={{ backgroundColor: colorHex ?? color! }}
                 />
               );
@@ -70,7 +69,7 @@ export default function VariationPicker({ variations, onSelect }: Props) {
 
       {uniqueSizes.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Tamanho</p>
+          <p className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-[0.3em] mb-3">Tamanho</p>
           <div className="flex gap-2 flex-wrap">
             {uniqueSizes.map((size) => {
               const variation = variations.find(
@@ -82,11 +81,11 @@ export default function VariationPicker({ variations, onSelect }: Props) {
                   key={size}
                   onClick={() => pickSize(size)}
                   disabled={!inStock}
-                  className={`px-3 py-1 rounded border text-sm font-medium transition-all
+                  className={`px-4 py-2 text-xs font-bold tracking-wide transition-all border
                     ${selectedSize === size
-                      ? 'bg-[var(--store-color)] text-white border-[var(--store-color)]'
-                      : 'bg-white border-gray-300 hover:border-[var(--store-color)]'}
-                    ${!inStock ? 'opacity-30 cursor-not-allowed line-through' : 'cursor-pointer'}`}
+                      ? 'bg-[#F97316] text-white border-[#F97316]'
+                      : 'bg-transparent text-[#A3A3A3] border-[#333] hover:border-[#F97316] hover:text-white'}
+                    ${!inStock ? 'opacity-25 cursor-not-allowed line-through' : 'cursor-pointer'}`}
                 >
                   {size}
                 </button>
