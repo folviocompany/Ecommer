@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MessageCircle, Instagram, Mail } from 'lucide-react';
+import { MessageCircle, Globe, Mail } from 'lucide-react';
 import { STORE_NAME, STORE_WHATSAPP } from '@/lib/store';
 
 const categories = [
@@ -41,7 +41,7 @@ export default function Footer() {
               className="w-10 h-10 rounded-full border border-[#2A2A2A] flex items-center justify-center text-[#A3A3A3] hover:border-[#F97316] hover:text-[#F97316] transition-colors"
               aria-label="Instagram"
             >
-              <Instagram className="h-4 w-4" />
+              <Globe className="h-4 w-4" />
             </a>
           </div>
         </div>
