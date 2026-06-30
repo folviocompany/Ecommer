@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import Image from 'next/image';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
@@ -9,41 +10,45 @@ import type { ProductPublic } from '@/types';
 import { STORE_NAME, STORE_DESCRIPTION } from '@/lib/store';
 import sql from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-async function getFeatured(): Promise<ProductPublic[]> {
-  try {
-    const rows = (await sql.unsafe(`
-      SELECT
-        p.id, p.name, p.slug, p.price, p.images, p.featured,
-        c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
-        EXISTS (
-          SELECT 1 FROM variations v
-          WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
-        ) AS has_stock
-      FROM products p
-      LEFT JOIN categories c ON c.id = p.category_id
-      WHERE p.active = true AND p.featured = true
-      ORDER BY p.created_at DESC
-      LIMIT 8
-    `)) as unknown as Record<string, unknown>[];
+const getFeatured = unstable_cache(
+  async (): Promise<ProductPublic[]> => {
+    try {
+      const rows = await sql`
+        SELECT
+          p.id, p.name, p.slug, p.price, p.images, p.featured,
+          c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
+          EXISTS (
+            SELECT 1 FROM variations v
+            WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
+          ) AS has_stock
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = true AND p.featured = true
+        ORDER BY p.created_at DESC
+        LIMIT 8
+      ` as unknown as Record<string, unknown>[];
 
-    return rows.map((p) => ({
-      id: p.id as number,
-      name: p.name as string,
-      slug: p.slug as string,
-      price: Number(p.price),
-      images: p.images as string[],
-      featured: p.featured as boolean,
-      hasStock: p.has_stock as boolean,
-      category: p.cat_id
-        ? { id: p.cat_id as number, name: p.cat_name as string, slug: p.cat_slug as string }
-        : null,
-    }));
-  } catch {
-    return [];
-  }
-}
+      return rows.map((p) => ({
+        id: p.id as number,
+        name: p.name as string,
+        slug: p.slug as string,
+        price: Number(p.price),
+        images: p.images as string[],
+        featured: p.featured as boolean,
+        hasStock: p.has_stock as boolean,
+        category: p.cat_id
+          ? { id: p.cat_id as number, name: p.cat_name as string, slug: p.cat_slug as string }
+          : null,
+      }));
+    } catch {
+      return [];
+    }
+  },
+  ['home-featured'],
+  { revalidate: 3600 }
+);
 
 export default async function HomePage() {
   const featured = await getFeatured();
@@ -68,7 +73,7 @@ export default async function HomePage() {
 
           <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
             <p className="text-[#F97316] text-xs md:text-sm font-bold tracking-[0.5em] uppercase mb-6">
-              Nova Coleção 2025
+              Nova Coleção 2026
             </p>
             <h1 className="font-heading text-[12vw] sm:text-[5rem] md:text-[10rem] lg:text-[13rem] text-white leading-none tracking-tight mb-2">
               {STORE_NAME}
@@ -92,7 +97,6 @@ export default async function HomePage() {
           <section id="destaque" className="bg-[#111111] px-4 py-20">
             <div className="max-w-7xl mx-auto">
 
-              {/* Heading revela primeiro */}
               <RevealOnScroll delay={0}>
                 <div className="flex items-center gap-4 mb-12">
                   <div className="w-1 h-10 bg-[#F97316]" />
@@ -105,12 +109,10 @@ export default async function HomePage() {
                 </div>
               </RevealOnScroll>
 
-              {/* Grid revela 150ms depois */}
               <RevealOnScroll delay={150}>
                 <ProductGrid products={featured} />
               </RevealOnScroll>
 
-              {/* CTA revela por último */}
               <RevealOnScroll delay={300}>
                 <div className="mt-12 text-center">
                   <Link

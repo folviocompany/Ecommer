@@ -1,28 +1,52 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import type { ProductPublic } from '@/types';
+import { unstable_cache } from 'next/cache';
 import ProductGrid from '@/components/store/ProductGrid';
+import type { ProductPublic } from '@/types';
+import sql from '@/lib/db';
 
 interface Props {
   categorySlug: string;
   currentSlug: string;
 }
 
-export default function RelatedProducts({ categorySlug, currentSlug }: Props) {
-  const [products, setProducts] = useState<ProductPublic[]>([]);
+const getRelated = unstable_cache(
+  async (categorySlug: string, currentSlug: string): Promise<ProductPublic[]> => {
+    try {
+      const rows = await sql`
+        SELECT p.id, p.name, p.slug, p.price, p.images, p.featured,
+          c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
+          EXISTS (
+            SELECT 1 FROM variations v
+            WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
+          ) AS has_stock
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = true AND c.slug = ${categorySlug} AND p.slug != ${currentSlug}
+        ORDER BY p.featured DESC, p.created_at DESC
+        LIMIT 4
+      ` as unknown as Record<string, unknown>[];
 
-  useEffect(() => {
-    fetch(`/api/products?category=${categorySlug}`)
-      .then((r) => r.json())
-      .then((data) => {
-        const filtered = (data.products ?? [])
-          .filter((p: ProductPublic) => p.slug !== currentSlug)
-          .slice(0, 4);
-        setProducts(filtered);
-      })
-      .catch(() => {});
-  }, [categorySlug, currentSlug]);
+      return rows.map((p) => ({
+        id: p.id as number,
+        name: p.name as string,
+        slug: p.slug as string,
+        price: Number(p.price),
+        images: p.images as string[],
+        featured: p.featured as boolean,
+        hasStock: p.has_stock as boolean,
+        category: p.cat_id
+          ? { id: p.cat_id as number, name: p.cat_name as string, slug: p.cat_slug as string }
+          : null,
+      }));
+    } catch {
+      return [];
+    }
+  },
+  ['related-products'],
+  { revalidate: 3600 }
+);
+
+export default async function RelatedProducts({ categorySlug, currentSlug }: Props) {
+  const products = await getRelated(categorySlug, currentSlug);
 
   if (!products.length) return null;
 

@@ -1,95 +1,98 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 import Link from 'next/link';
-import { MessageCircle, ShoppingCart, ChevronRight, Package, Minus, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { ChevronRight } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import VariationPicker from '@/components/store/VariationPicker';
+import ProductGallery from '@/components/store/ProductGallery';
+import ProductActions from '@/components/store/ProductActions';
 import RelatedProducts from '@/components/store/RelatedProducts';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useCart } from '@/contexts/CartContext';
-import type { ProductDetail, VariationPublic } from '@/types';
-import { STORE_WHATSAPP } from '@/lib/store';
+import type { ProductDetail } from '@/types';
+import { STORE_NAME } from '@/lib/store';
+import sql from '@/lib/db';
 
-function formatPrice(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const getProduct = unstable_cache(
+  async (slug: string): Promise<ProductDetail | null> => {
+    try {
+      const [product] = await sql`
+        SELECT
+          p.id, p.name, p.slug, p.description, p.price, p.images, p.featured,
+          c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.slug = ${slug} AND p.active = true
+      `;
+
+      if (!product) return null;
+
+      const variations = await sql`
+        SELECT id, size, color, color_hex, stock, price_modifier
+        FROM variations
+        WHERE product_id = ${product.id} AND active = true
+        ORDER BY size, color
+      `;
+
+      const basePrice = Number(product.price);
+
+      const variationsMapped = (variations as Array<{
+        id: number;
+        size: string | null;
+        color: string | null;
+        color_hex: string | null;
+        stock: number;
+        price_modifier: string | number;
+      }>).map((v) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        colorHex: v.color_hex,
+        stock: Number(v.stock),
+        priceModifier: Number(v.price_modifier),
+        finalPrice: basePrice + Number(v.price_modifier),
+      }));
+
+      const inStock = variationsMapped.filter((v) => v.stock > 0);
+
+      return {
+        id: product.id as number,
+        name: product.name as string,
+        slug: product.slug as string,
+        description: product.description as string | null,
+        price: basePrice,
+        images: product.images as string[],
+        featured: product.featured as boolean,
+        hasStock: inStock.length > 0,
+        category: product.cat_id
+          ? { id: product.cat_id as number, name: product.cat_name as string, slug: product.cat_slug as string }
+          : null,
+        variations: variationsMapped,
+        availableSizes: [...new Set(inStock.map((v) => v.size).filter(Boolean))] as string[],
+        availableColors: [...new Set(inStock.map((v) => v.color).filter(Boolean))] as string[],
+      };
+    } catch {
+      return null;
+    }
+  },
+  ['product-detail'],
+  { revalidate: 3600 }
+);
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = await getProduct(slug);
+  if (!product) return {};
+  return {
+    title: `${product.name} — ${STORE_NAME}`,
+    description: product.description ?? undefined,
+  };
 }
 
-export default function ProdutoPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const router = useRouter();
-  const { addItem } = useCart();
+export default async function ProdutoPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = await getProduct(slug);
 
-  const [product, setProduct] = useState<ProductDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedVariation, setSelectedVariation] = useState<VariationPublic | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [mainImage, setMainImage] = useState(0);
-
-  useEffect(() => {
-    fetch(`/api/products/${slug}`)
-      .then((r) => {
-        if (!r.ok) {
-          router.replace('/produtos');
-          return null;
-        }
-        return r.json();
-      })
-      .then((data) => { if (data) setProduct(data); })
-      .catch(() => router.replace('/produtos'))
-      .finally(() => setLoading(false));
-  }, [slug, router]);
-
-  if (loading) {
-    return (
-      <>
-        <Header />
-        <main className="bg-[#0A0A0A] min-h-screen">
-          <div className="max-w-5xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-10">
-            <Skeleton className="aspect-square rounded-xl bg-[#1A1A1A]" />
-            <div className="space-y-4">
-              <Skeleton className="h-4 w-32 bg-[#1A1A1A]" />
-              <Skeleton className="h-10 w-3/4 bg-[#1A1A1A]" />
-              <Skeleton className="h-8 w-1/3 bg-[#1A1A1A]" />
-              <Skeleton className="h-24 w-full bg-[#1A1A1A]" />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  if (!product) return null;
-
-  const maxQty = Math.min(selectedVariation?.stock ?? 1, 10);
-  const price = selectedVariation?.finalPrice ?? product.price;
-  const waUrl = STORE_WHATSAPP
-    ? `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${product.name}`)}`
-    : null;
-
-  function handleAddToCart() {
-    if (!selectedVariation) {
-      toast.error('Selecione uma variação antes de adicionar ao carrinho.');
-      return;
-    }
-    const parts = [selectedVariation.size, selectedVariation.color].filter(Boolean);
-    addItem({
-      productId: product!.id,
-      variationId: selectedVariation.id,
-      productName: product!.name,
-      variationDesc: parts.join(' / '),
-      image: product!.images[0] ?? '',
-      unitPrice: selectedVariation.finalPrice,
-      quantity,
-    });
-    toast.success('Produto adicionado ao carrinho!');
-  }
+  if (!product) notFound();
 
   return (
     <>
@@ -119,43 +122,11 @@ export default function ProdutoPage() {
 
           <div className="grid md:grid-cols-2 gap-10 lg:gap-14">
 
-            {/* Galeria */}
-            <div>
-              <div className="relative aspect-square rounded-xl overflow-hidden bg-[#1A1A1A] mb-3">
-                {product.images[mainImage] ? (
-                  <Image
-                    src={product.images[mainImage]}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#333]">
-                    <Package className="w-16 h-16" />
-                  </div>
-                )}
-              </div>
-              {product.images.length > 1 && (
-                <div className="flex gap-2 flex-wrap">
-                  {product.images.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setMainImage(i)}
-                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all
-                        ${i === mainImage
-                          ? 'border-[#F97316] opacity-100'
-                          : 'border-transparent opacity-50 hover:opacity-80'}`}
-                    >
-                      <Image src={img} alt="" fill className="object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Galeria — client component para troca de imagem */}
+            <ProductGallery images={product.images} name={product.name} />
 
             {/* Info */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {product.category && (
                 <p className="text-[#F97316] text-[10px] font-bold tracking-[0.4em] uppercase">
                   {product.category.name}
@@ -166,78 +137,40 @@ export default function ProdutoPage() {
                 {product.name}
               </h1>
 
-              <p className="text-3xl font-bold" style={{ color: 'var(--store-color)' }}>
-                {formatPrice(price)}
-              </p>
-
               {product.description && (
                 <p className="text-[#A3A3A3] leading-relaxed text-sm border-t border-[#1A1A1A] pt-5">
                   {product.description}
                 </p>
               )}
 
-              <div className="border-t border-[#1A1A1A] pt-5">
-                <VariationPicker
-                  variations={product.variations}
-                  onSelect={setSelectedVariation}
-                />
-              </div>
-
-              {selectedVariation && (
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-[0.3em]">Qtd.</span>
-                  <div className="flex items-center border border-[#2A2A2A] rounded">
-                    <button
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="w-10 h-10 flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors"
-                    >
-                      <Minus className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="w-10 text-center text-sm font-medium text-white">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                      className="w-10 h-10 flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <span className="text-xs text-[#555]">{selectedVariation.stock} disponíveis</span>
-                </div>
-              )}
-
-              <div className="flex gap-3 flex-wrap pt-2">
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={!selectedVariation || selectedVariation.stock === 0}
-                  className="text-white font-bold tracking-wide flex-1 sm:flex-none hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: 'var(--store-color)' }}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Adicionar ao carrinho
-                </Button>
-
-                {waUrl && (
-                  <a href={waUrl} target="_blank" rel="noopener noreferrer">
-                    <Button
-                      variant="outline"
-                      className="border-green-600 text-green-500 hover:bg-green-950/40 hover:text-green-400 transition-colors"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      WhatsApp
-                    </Button>
-                  </a>
-                )}
-              </div>
+              {/* Preço, variações e botões — client component */}
+              <ProductActions product={product} />
             </div>
           </div>
 
-          {/* Related Products */}
+          {/* Produtos relacionados — server component com Suspense */}
           {product.category && (
-            <RelatedProducts
-              categorySlug={product.category.slug}
-              currentSlug={product.slug}
-            />
+            <Suspense fallback={
+              <div className="mt-16 pt-12 border-t border-[#1A1A1A]">
+                <div className="h-8 w-64 bg-[#1A1A1A] rounded animate-pulse mb-10" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i}>
+                      <div className="aspect-square bg-[#1A1A1A] rounded-lg animate-pulse mb-3" />
+                      <div className="h-3 bg-[#1A1A1A] rounded animate-pulse mb-1 w-3/4" />
+                      <div className="h-4 bg-[#1A1A1A] rounded animate-pulse w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            }>
+              <RelatedProducts
+                categorySlug={product.category.slug}
+                currentSlug={product.slug}
+              />
+            </Suspense>
           )}
+
         </div>
       </main>
       <Footer />

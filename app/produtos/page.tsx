@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { unstable_cache } from 'next/cache';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ProductGrid, { ProductGridSkeleton } from '@/components/store/ProductGrid';
@@ -7,16 +8,18 @@ import Link from 'next/link';
 import type { ProductPublic, Category } from '@/types';
 import sql from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
-
-async function getCategories(): Promise<Pick<Category, 'id' | 'name' | 'slug'>[]> {
-  try {
-    const rows = await sql`SELECT id, name, slug FROM categories WHERE active = true ORDER BY name`;
-    return rows as unknown as Pick<Category, 'id' | 'name' | 'slug'>[];
-  } catch {
-    return [];
-  }
-}
+const getCategories = unstable_cache(
+  async (): Promise<Pick<Category, 'id' | 'name' | 'slug'>[]> => {
+    try {
+      const rows = await sql`SELECT id, name, slug FROM categories WHERE active = true ORDER BY name`;
+      return rows as unknown as Pick<Category, 'id' | 'name' | 'slug'>[];
+    } catch {
+      return [];
+    }
+  },
+  ['categories'],
+  { revalidate: 3600 }
+);
 
 async function getProducts(params: { category?: string; page?: string }) {
   try {
@@ -25,27 +28,18 @@ async function getProducts(params: { category?: string; page?: string }) {
     const offset = (page - 1) * limit;
     const category = params.category ?? null;
 
-    let countResult: { count: number }[];
     let rows: Record<string, unknown>[];
 
-    const selectFields = sql`
-      p.id, p.name, p.slug, p.price, p.images, p.featured,
-      c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
-      EXISTS (
-        SELECT 1 FROM variations v
-        WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
-      ) AS has_stock
-    `;
-
     if (category) {
-      countResult = await sql`
-        SELECT COUNT(*)::int AS count
-        FROM products p
-        LEFT JOIN categories c ON c.id = p.category_id
-        WHERE p.active = true AND c.slug = ${category}
-      ` as unknown as { count: number }[];
       rows = await sql`
-        SELECT ${selectFields}
+        SELECT
+          p.id, p.name, p.slug, p.price, p.images, p.featured,
+          c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
+          EXISTS (
+            SELECT 1 FROM variations v
+            WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
+          ) AS has_stock,
+          COUNT(*) OVER() AS total_count
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
         WHERE p.active = true AND c.slug = ${category}
@@ -53,14 +47,15 @@ async function getProducts(params: { category?: string; page?: string }) {
         LIMIT ${limit} OFFSET ${offset}
       ` as unknown as Record<string, unknown>[];
     } else {
-      countResult = await sql`
-        SELECT COUNT(*)::int AS count
-        FROM products p
-        LEFT JOIN categories c ON c.id = p.category_id
-        WHERE p.active = true
-      ` as unknown as { count: number }[];
       rows = await sql`
-        SELECT ${selectFields}
+        SELECT
+          p.id, p.name, p.slug, p.price, p.images, p.featured,
+          c.id AS cat_id, c.name AS cat_name, c.slug AS cat_slug,
+          EXISTS (
+            SELECT 1 FROM variations v
+            WHERE v.product_id = p.id AND v.active = true AND v.stock > 0
+          ) AS has_stock,
+          COUNT(*) OVER() AS total_count
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
         WHERE p.active = true
@@ -69,7 +64,7 @@ async function getProducts(params: { category?: string; page?: string }) {
       ` as unknown as Record<string, unknown>[];
     }
 
-    const [{ count }] = countResult;
+    const total = Number(rows[0]?.total_count ?? 0);
 
     return {
       products: rows.map((p) => ({
@@ -82,9 +77,9 @@ async function getProducts(params: { category?: string; page?: string }) {
         hasStock: p.has_stock,
         category: p.cat_id ? { id: p.cat_id, name: p.cat_name, slug: p.cat_slug } : null,
       })) as ProductPublic[],
-      total: count,
+      total,
       page,
-      pages: Math.ceil(count / limit),
+      pages: Math.ceil(total / limit),
     };
   } catch {
     return { products: [], total: 0, page: 1, pages: 1 };
@@ -132,7 +127,7 @@ export default async function ProdutosPage({
                   ← Anterior
                 </Link>
               )}
-              <span className="px-4 py-2 text-sm text-[#A3A3A3]">
+              <span className="px-4 py-3 text-sm text-[#A3A3A3]">
                 {page} / {pages}
               </span>
               {page < pages && (
