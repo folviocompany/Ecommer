@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ProductGrid from '@/components/store/ProductGrid';
+import ScrollIndicator from '@/components/store/ScrollIndicator';
+import RevealOnScroll from '@/components/store/RevealOnScroll';
 import type { ProductPublic } from '@/types';
 import { STORE_NAME, STORE_DESCRIPTION } from '@/lib/store';
 import sql from '@/lib/db';
@@ -83,17 +84,14 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-[#A3A3A3] pointer-events-none animate-bounce">
-            <span className="text-[10px] tracking-[0.4em] uppercase font-medium">Scroll</span>
-            <ChevronDown className="h-4 w-4" />
-          </div>
+          <ScrollIndicator targetId="destaque" />
         </section>
 
         {/* ── Em Destaque ── */}
         {featured.length > 0 && (
-          <section className="bg-[#111111] px-4 py-20">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-4 mb-12">
+          <section id="destaque" className="bg-[#111111] px-4 py-20">
+            <RevealOnScroll className="max-w-7xl mx-auto">
+              <div className="flex items-center gap-4 mb-12 reveal-heading">
                 <div className="w-1 h-10 bg-[#F97316]" />
                 <div>
                   <p className="text-[#F97316] text-xs font-bold tracking-[0.4em] uppercase mb-1">Seleção especial</p>
@@ -103,7 +101,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <ProductGrid products={featured} />
-              <div className="mt-12 text-center">
+              <div className="mt-12 text-center reveal-heading" style={{ transitionDelay: '300ms' }}>
                 <Link
                   href="/produtos"
                   className="inline-block border border-[#F97316] text-[#F97316] px-10 py-3 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#F97316] hover:text-white transition-all duration-300"
@@ -111,7 +109,7 @@ export default async function HomePage() {
                   VER TODOS OS PRODUTOS
                 </Link>
               </div>
-            </div>
+            </RevealOnScroll>
           </section>
         )}
 
