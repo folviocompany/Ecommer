@@ -90,26 +90,39 @@ export default async function HomePage() {
         {/* ── Em Destaque ── */}
         {featured.length > 0 && (
           <section id="destaque" className="bg-[#111111] px-4 py-20">
-            <RevealOnScroll className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-4 mb-12 reveal-heading">
-                <div className="w-1 h-10 bg-[#F97316]" />
-                <div>
-                  <p className="text-[#F97316] text-xs font-bold tracking-[0.4em] uppercase mb-1">Seleção especial</p>
-                  <h2 className="font-heading text-4xl md:text-5xl text-white tracking-wide leading-none">
-                    EM DESTAQUE
-                  </h2>
+            <div className="max-w-7xl mx-auto">
+
+              {/* Heading revela primeiro */}
+              <RevealOnScroll delay={0}>
+                <div className="flex items-center gap-4 mb-12">
+                  <div className="w-1 h-10 bg-[#F97316]" />
+                  <div>
+                    <p className="text-[#F97316] text-xs font-bold tracking-[0.4em] uppercase mb-1">Seleção especial</p>
+                    <h2 className="font-heading text-4xl md:text-5xl text-white tracking-wide leading-none">
+                      EM DESTAQUE
+                    </h2>
+                  </div>
                 </div>
-              </div>
-              <ProductGrid products={featured} />
-              <div className="mt-12 text-center reveal-heading" style={{ transitionDelay: '300ms' }}>
-                <Link
-                  href="/produtos"
-                  className="inline-block border border-[#F97316] text-[#F97316] px-10 py-3 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#F97316] hover:text-white transition-all duration-300"
-                >
-                  VER TODOS OS PRODUTOS
-                </Link>
-              </div>
-            </RevealOnScroll>
+              </RevealOnScroll>
+
+              {/* Grid revela 150ms depois */}
+              <RevealOnScroll delay={150}>
+                <ProductGrid products={featured} />
+              </RevealOnScroll>
+
+              {/* CTA revela por último */}
+              <RevealOnScroll delay={300}>
+                <div className="mt-12 text-center">
+                  <Link
+                    href="/produtos"
+                    className="inline-block border border-[#F97316] text-[#F97316] px-10 py-3 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#F97316] hover:text-white transition-all duration-300"
+                  >
+                    VER TODOS OS PRODUTOS
+                  </Link>
+                </div>
+              </RevealOnScroll>
+
+            </div>
           </section>
         )}
 

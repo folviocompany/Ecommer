@@ -26,10 +26,8 @@ export default function ProductGrid({ products }: { products: ProductPublic[] })
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {products.map((p, i) => (
-        <div key={p.id} className="product-reveal">
-          <ProductCard product={p} />
-        </div>
+      {products.map((p) => (
+        <ProductCard key={p.id} product={p} />
       ))}
     </div>
   );
