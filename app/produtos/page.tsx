@@ -127,7 +127,7 @@ export default async function ProdutosPage({
               {page > 1 && (
                 <Link
                   href={`/produtos?${new URLSearchParams({ ...(params.category ? { category: params.category } : {}), page: String(page - 1) })}`}
-                  className="border border-[#262626] text-[#A3A3A3] px-5 py-2 text-sm hover:border-[#F97316] hover:text-[#F97316] transition-colors"
+                  className="border border-[#262626] text-[#A3A3A3] px-5 py-3 text-sm hover:border-[#F97316] hover:text-[#F97316] transition-colors"
                 >
                   ← Anterior
                 </Link>
@@ -138,7 +138,7 @@ export default async function ProdutosPage({
               {page < pages && (
                 <Link
                   href={`/produtos?${new URLSearchParams({ ...(params.category ? { category: params.category } : {}), page: String(page + 1) })}`}
-                  className="border border-[#262626] text-[#A3A3A3] px-5 py-2 text-sm hover:border-[#F97316] hover:text-[#F97316] transition-colors"
+                  className="border border-[#262626] text-[#A3A3A3] px-5 py-3 text-sm hover:border-[#F97316] hover:text-[#F97316] transition-colors"
                 >
                   Próxima →
                 </Link>

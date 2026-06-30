@@ -70,7 +70,7 @@ export default async function HomePage() {
             <p className="text-[#F97316] text-xs md:text-sm font-bold tracking-[0.5em] uppercase mb-6">
               Nova Coleção 2025
             </p>
-            <h1 className="font-heading text-[5rem] md:text-[10rem] lg:text-[13rem] text-white leading-none tracking-tight mb-2">
+            <h1 className="font-heading text-[12vw] sm:text-[5rem] md:text-[10rem] lg:text-[13rem] text-white leading-none tracking-tight mb-2">
               {STORE_NAME}
             </h1>
             <p className="text-[#F97316] text-base md:text-xl font-medium tracking-[0.5em] mb-12 uppercase">
@@ -78,7 +78,7 @@ export default async function HomePage() {
             </p>
             <Link
               href="/produtos"
-              className="inline-block bg-[#F97316] text-white px-12 py-4 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#EA6C00] hover:shadow-[0_0_40px_rgba(249,115,22,0.45)] transition-all duration-300"
+              className="inline-block bg-[#F97316] text-white px-8 sm:px-12 py-4 text-xs font-bold tracking-[0.4em] uppercase hover:bg-[#EA6C00] hover:shadow-[0_0_40px_rgba(249,115,22,0.45)] transition-all duration-300"
             >
               VER COLEÇÃO
             </Link>

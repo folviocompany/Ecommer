@@ -189,14 +189,14 @@ export default function ProdutoPage() {
                   <div className="flex items-center border border-[#2A2A2A] rounded">
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="w-9 h-9 flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors"
+                      className="w-10 h-10 flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors"
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
                     <span className="w-10 text-center text-sm font-medium text-white">{quantity}</span>
                     <button
                       onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                      className="w-9 h-9 flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors"
+                      className="w-10 h-10 flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors"
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>

@@ -54,7 +54,7 @@ export default function VariationPicker({ variations, onSelect }: Props) {
                   title={color}
                   onClick={() => pickColor(color!)}
                   disabled={!hasStock}
-                  className={`w-9 h-9 rounded-full transition-all relative
+                  className={`w-10 h-10 rounded-full transition-all relative
                     ${selectedColor === color
                       ? 'ring-2 ring-[#F97316] ring-offset-2 ring-offset-[#0A0A0A] scale-110'
                       : 'ring-1 ring-[#333] ring-offset-1 ring-offset-[#0A0A0A]'}
@@ -81,7 +81,7 @@ export default function VariationPicker({ variations, onSelect }: Props) {
                   key={size}
                   onClick={() => pickSize(size)}
                   disabled={!inStock}
-                  className={`px-4 py-2 text-xs font-bold tracking-wide transition-all border
+                  className={`px-4 py-3 text-xs font-bold tracking-wide transition-all border
                     ${selectedSize === size
                       ? 'bg-[#F97316] text-white border-[#F97316]'
                       : 'bg-transparent text-[#A3A3A3] border-[#333] hover:border-[#F97316] hover:text-white'}

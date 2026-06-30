@@ -135,7 +135,7 @@ export default function CheckoutPage() {
         <p className="text-sm text-gray-500 mb-8">Preencha seus dados para concluir o pedido</p>
 
         <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
+          <div className="md:col-span-2 space-y-8 order-2 md:order-1">
 
             {/* Dados pessoais */}
             <section>
@@ -217,7 +217,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Order summary */}
-          <div>
+          <div className="order-1 md:order-2">
             <div className="border rounded-lg p-4 space-y-4 sticky top-20">
               <h2 className="font-semibold text-base">Resumo do pedido</h2>
 
