@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import sql from '@/lib/db';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,13 +13,24 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials) return null;
-        const hash = process.env.ADMIN_PASSWORD_HASH;
-        if (!hash) return null;
-        const valid =
-          credentials.email === process.env.ADMIN_EMAIL &&
-          (await bcrypt.compare(credentials.password, hash));
-        if (valid) return { id: '1', email: credentials.email, name: 'Admin' };
-        return null;
+
+        const [admin] = await sql`
+          SELECT id, name, email, password_hash
+          FROM admins
+          WHERE email = ${credentials.email}
+          LIMIT 1
+        `;
+
+        if (!admin) return null;
+
+        const valid = await bcrypt.compare(credentials.password, admin.password_hash as string);
+        if (!valid) return null;
+
+        return {
+          id: String(admin.id),
+          email: admin.email as string,
+          name: admin.name as string,
+        };
       },
     }),
   ],

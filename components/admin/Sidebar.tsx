@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import {
-  LayoutDashboard, Package, Tag, ShoppingBag, LogOut,
+  LayoutDashboard, Package, Tag, ShoppingBag, LogOut, KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { STORE_NAME } from '@/lib/store';
@@ -14,6 +14,7 @@ const links = [
   { href: '/admin/produtos', label: 'Produtos', icon: Package },
   { href: '/admin/categorias', label: 'Categorias', icon: Tag },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
+  { href: '/admin/perfil', label: 'Meu perfil', icon: KeyRound },
 ];
 
 export default function Sidebar() {
