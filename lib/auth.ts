@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
         const [admin] = await sql`
           SELECT id, name, email, password_hash
           FROM admins
-          WHERE email = ${credentials.email}
+          WHERE LOWER(email) = LOWER(${credentials.email})
           LIMIT 1
         `;
 
